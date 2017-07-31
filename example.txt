@@ -1,0 +1,20 @@
+Board board = new Board(); // generates default board
+while(!board.checkEndState()){
+	//player one
+	boolean playerOne=true;
+	while(playerOne){
+		//////////////GET INPUT /////////// make sure x=0
+		playerOne = board.movePiece(x,y);
+		display(board.getBoardArray());
+		display(board.getPlayerOneStore());
+		display(board.getPlayerTwoStore());
+	}
+	playerTwo=true;
+	while(player){
+		//////////////GET INPUT//////// make sure x=1
+		playerTwo = board.movePiece(x,y);
+		display(board.getBoardArray());
+		display(board.getPlayerOneStore());
+		display(board.getPlayerTwoStore());
+	}
+}

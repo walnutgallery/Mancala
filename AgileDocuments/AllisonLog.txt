@@ -1,0 +1,37 @@
+3/10/17
+Selected tasks for Sprint 1.
+3/14/17
+Installed and learned to use Eclipse since I never used it before. Compiled teammates' code.
+3/15/17
+Made Start Screen.
+3/16/17
+Wrote AI Strategy Paragraph
+3/19/17
+Made temp Quit Screen, will update later.
+Met with Group and decided that we already knew the algorithm for CRA6.
+3/20/17
+Selected tasks for Sprint 2. Finished Quit Screen
+3/24/17
+Finished MTG19.
+3/25/17
+Finished MTG11.
+3/28/17
+Added skeleton code for extra turns.
+3/30/17
+Worked on Alpha Beta and End Screen. Selected tasks for Sprint 3.
+3/31/17
+Added Pi button (display only), fixed play again button on end screen.
+4/1/17
+Added Options to Start Screen, fixed End Screen Graphics
+4/2/17
+Worked on Random Seeds, connected random seed button
+4/3/17
+connected pi button
+4/6/17
+worked on pi button
+4/7/17
+finished pi button
+4/8/17
+redesigned start screen, created option screen and connected it to data server
+4/9/17
+Changed board colors and wrote Sprint 3 Retrospective

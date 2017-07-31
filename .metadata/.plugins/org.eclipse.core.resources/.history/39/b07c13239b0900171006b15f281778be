@@ -1,0 +1,206 @@
+
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class GameScreen extends JPanel implements KeyListener, Runnable {
+	private static final long serialVersionUID = 1L;
+	private boolean running = false;
+	private int newBoard[][];
+	public static final int WIDTH = 950;
+	public static final int HEIGHT = 600;
+	public static final int TIMER = 50;
+	
+
+	public class DrawBoard extends JComponent{
+		private static final long serialVersionUID = 1L;
+		
+		DrawBoard(int width, int height) {
+            setPreferredSize(new Dimension(width, height));
+        }
+		@Override
+	    public void paintComponent(Graphics g){
+	    	super.paintComponents(g);
+	    	
+			//Background
+			g.setColor(Color.WHITE);
+	    	g.fillRect(0, 0, WIDTH, HEIGHT);
+	    	
+	    	//Board
+	    	g.setColor(Color.DARK_GRAY);
+	    	g.fillRoundRect(50, 125, 850, 250,20,20);
+	    	
+	    	//Stores
+	    	g.setColor(Color.GRAY);
+	    	g.fillRoundRect(70, 145, 70, 210,50,50);
+	    	g.fillRoundRect(810, 145, 70, 210,50,50);
+	    	
+	    	//Pits
+	    	g.setColor(Color.GRAY);
+	    	//top
+	    	for(int i = 0; i<6; i++){
+	    		int x = 150;
+	    		g.fillRoundRect(x+(110)*i,145, 80, 100, 80, 80);
+	    	}
+	    	//bottom
+	    	for(int j = 0; j<6; j++){
+	    		int x = 150;
+	    		g.fillRoundRect(x+(110)*j,255, 80, 100, 80, 80);
+	    	}
+	    	
+	    	//Pieces using newBoard
+	    	g.setColor(Color.magenta);
+	    	int numSeeds;
+	    	int count;
+	    	System.out.println(newBoard.toString());
+	    	for(int x = 0; x<newBoard[0].length; x++){//6
+	    		for(int y=0; y<newBoard.length; y++){//2
+	    			numSeeds = newBoard[y][x];
+	    			for(int i =0; i<numSeeds; i++){
+	    				count = 0;
+	    				while(count<numSeeds){
+	    					g.fillOval(170+110*x+10*count, 165+110*y, 10, 10);
+	    					count++;
+	    				}
+	    			}
+	    		}	
+	    	} 	
+	    }
+	}
+
+
+	/* Constructor Draws the initial board
+	 * @param _inBoard the board that is passed in. This is used to update/redraw the board.
+	 */
+	public GameScreen(Board _inBoard){
+		//Draws initial board
+		newBoard = _inBoard.getBoardArray();
+		if(!running){
+			setPreferredSize(new Dimension(WIDTH,HEIGHT));
+			setFocusable(true);
+			requestFocus();
+			addKeyListener(this);
+			
+			final JFrame frame = new JFrame("Mancala");
+			frame.setSize(new Dimension(WIDTH,HEIGHT));
+			
+	        JPanel panel = new JPanel();
+	        //title
+	        JLabel label= new JLabel();
+	        label.setText("<html><h1><font color='red'>MANCALA</h1></html>");
+	        panel.add(label);
+	        //board
+	        DrawBoard board = new DrawBoard(WIDTH,HEIGHT);
+	        panel.add(board);
+
+	        
+	        frame.add(panel);
+	        frame.setVisible(true);
+	        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	        
+	        running = true;
+		}
+		else{
+			// just move the pieces
+			redraw();
+			
+		}
+		
+	}
+/*
+ * used to move the pieces on the board
+ */
+	public void redraw(){
+		/*
+		 * 
+		 * 
+		 * int modCount = 0;
+	    	int rows;
+	    	int tempy=0;
+	    	int tempx=0;
+	    	int rowCount=0;
+	    	Boolean multRows = false;
+	    	
+		 g.setColor(Color.magenta);
+	    	int numSeeds;
+	    	int count;
+	    	int modCount = 0;
+	    	int rows;
+	    	int tempy=0;
+	    	int tempx=0;
+	    	int rowCount=0;
+	    	Boolean multRows = false;
+	    	System.out.println(newBoard.toString());
+	    	for(int x = 0; x<newBoard[0].length; x++){//6
+	    		for(int y=0; y<newBoard.length; y++){//2
+	    			numSeeds = newBoard[y][x];
+	    			for(int i =0; i<numSeeds; i++){
+	    				count = 0;
+	    				while(count<numSeeds){
+	    					if(numSeeds>4){
+	    						rows = numSeeds/4+1;
+	    						multRows = true;
+	    					}
+	    					if(multRows){
+	    						if(count%4==0){
+	    							rowCount++;
+	    							tempy=0;
+	    							tempx=0;
+	    						}
+	    						g.fillOval(170+110*tempx+10*count, 165+110*tempy, 10, 10);
+	    					}
+	    					else{
+	    						g.fillOval(170+110*x+10*count, 165+110*y, 10, 10);
+	    					}
+	    					count++;
+	    				}
+	    			}
+	    			tempy=y;
+	    		}
+	    		tempx=x;
+	    	} 	
+	    }
+	}
+		 */
+		
+	}
+	
+	
+	
+	
+	/*
+	 * this is for later..
+	 */
+	@Override
+	public void keyTyped(KeyEvent e) {
+
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+
+	}
+
+	@Override
+	public void run() {
+		
+		
+	}
+
+}

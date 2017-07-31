@@ -1,0 +1,15 @@
+
+public class AI {
+	dependencies {
+	    compile 'com.scalified:tree:0.2.4'
+	}
+
+	
+	
+	/**
+	 * 
+	 * @param _b
+	 */
+	public AI(Board _b){}
+	
+}

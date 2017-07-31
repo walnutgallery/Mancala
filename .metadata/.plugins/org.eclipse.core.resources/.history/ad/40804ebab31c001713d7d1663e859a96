@@ -1,0 +1,48 @@
+
+public class ServerFunctions {
+	int numPlayersConnected;
+	Board board;
+	boolean hasBegun = false;
+	public void setInfo(int numHoles, int numSeeds, int timer, String turn, String random){
+		int [][] boardArray = new int [2][numHoles];
+		for(int i = 0; i < 2; i ++)
+			for(int j = 0; j < numHoles; j++)
+				boardArray[i][j] = numSeeds;
+		Board board = new Board(numHoles, numSeeds, random == "R");
+	}
+	
+	public void connect(String connection){
+		if(numPlayersConnected < 3){
+			numPlayersConnected++;
+		}
+		if(!hasBegun && numPlayersConnected == 2)
+			sendBegin();
+		else if(hasBegun)
+			System.out.println("Too many connections.");
+	}
+	
+	public String sendBegin(){
+		return "BEGIN";
+	}
+	
+	public String sendOk(){
+		return null;
+		
+	}
+	
+	public String sendWelcome(){
+		return "WELCOME";
+		
+	}
+	
+	public String sendOutcomePlayer1(){
+		return null;
+		
+	}
+	public String sendOutcomePlayer2(){
+		return null;
+		
+	}
+	
+	
+}

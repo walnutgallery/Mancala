@@ -1,0 +1,27 @@
+
+public class AI {
+
+	/**
+	 * 
+	 * @param _b
+	 */
+	public AI(Board _b){
+		TreeNode<String> n1 = new ArrayMultiTreeNode<>("n1");
+		TreeNode<String> n2 = new ArrayMultiTreeNode<>("n2");
+		TreeNode<String> n3 = new ArrayMultiTreeNode<>("n3");
+		TreeNode<String> n4 = new ArrayMultiTreeNode<>("n4");
+		TreeNode<String> n5 = new ArrayMultiTreeNode<>("n5");
+		TreeNode<String> n6 = new ArrayMultiTreeNode<>("n6");
+		TreeNode<String> n7 = new ArrayMultiTreeNode<>("n7");
+
+		// Assigning tree nodes
+		n1.add(n2);
+		n1.add(n3);
+		n1.add(n4);
+		n2.add(n5);
+		n2.add(n6);
+		n4.add(n7);
+
+	}
+	
+}

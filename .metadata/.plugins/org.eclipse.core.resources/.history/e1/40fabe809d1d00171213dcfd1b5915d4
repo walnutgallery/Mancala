@@ -1,0 +1,261 @@
+
+
+import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class OptionGUI {
+    private JFrame newScreen;
+    private JLabel headerLabel;
+    private JLabel testLabel;
+    private JPanel buttonPanel;
+    private JPanel optionPanel;
+    JButton inputButton = new JButton("Input Information");
+    JButton defaultButton = new JButton("Use Default");
+    JButton yesButton = new JButton("Yes");
+    JButton noButton = new JButton("No");
+    JButton P1Button = new JButton("Player 1");
+    JButton P2Button = new JButton("Player 2");
+    JButton launchButton = new JButton("Launch");
+    public static JTextField inputH;
+    public static JTextField inputS;
+    public static JTextField inputT;
+    private Boolean wait = true;
+    private Boolean holesSet = false;
+    private Boolean seedSet = false;
+    private Boolean timerSet = false;
+    private Boolean player1Set = false;
+    private Boolean randomSeedset=false;
+    int holes=6;
+    int seeds=4;
+    char randomSeeds;
+    Boolean timer;
+    int timerLength=12;
+    char playerFirst;
+
+    
+    /**
+     * Getter method for the information
+     * @return
+     */
+    public String getINFO(){ 
+    	String INFO;
+    	INFO="INFO "+holes+" "+seeds+" "+timerLength+" "+playerFirst+" "+randomSeeds;
+    	
+    	return INFO; 
+    }
+    
+    /**
+     * default constructor that calls the gui.
+     */
+    public OptionGUI(){
+        prepareGUI();
+    }
+    
+    Boolean Wait(){//So GameManager knows when the start button is pressed
+    	
+    	return wait;
+    }
+    
+    
+    private void prepareGUI(){
+        
+    	newScreen = new JFrame("Mancala Start Screen");
+
+        newScreen.setSize(750,780);
+        newScreen.setLayout(new GridLayout(4, 0));
+        
+        headerLabel = new JLabel("",JLabel.CENTER );
+
+        
+        newScreen.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent){
+                System.exit(0);
+            }
+        });
+        optionPanel = new JPanel();
+        optionPanel.setLayout(new FlowLayout());
+        
+        
+        newScreen.add(headerLabel);
+      
+        
+        optionPanel.setLayout(new GridLayout(5,0));
+        
+        newScreen.setVisible(true);
+        createScreen();
+    }
+    void createScreen(){//Create Start Screen
+    		optionPanel.setVisible(false);
+            headerLabel.setText("<html><h1><font color='red'>MANCALA</h1></html>");
+            
+            buttonPanel = new JPanel();
+            buttonPanel.setLayout(new FlowLayout());
+            
+            JButton quitButton = new JButton("Quit");
+            quitButton.setActionCommand("Quit");
+            inputButton.setActionCommand("Input Information");
+            defaultButton.setActionCommand("Use Default");
+   
+            inputButton.addActionListener(new ButtonClickListener());
+            quitButton.addActionListener(new ButtonClickListener());
+            defaultButton.addActionListener(new ButtonClickListener());
+            
+            buttonPanel.add(inputButton);
+            inputButton.setLayout(new BoxLayout(inputButton,BoxLayout.LINE_AXIS));
+            quitButton.setLayout(new BoxLayout(quitButton,BoxLayout.LINE_AXIS));
+            buttonPanel.add(defaultButton);
+            buttonPanel.add(quitButton);
+            newScreen.add(buttonPanel);
+            newScreen.add(optionPanel);
+            
+            
+            
+            //Set up Input for number of holes
+            JPanel inputpanel = new JPanel();
+            inputpanel.setLayout(new FlowLayout());
+            JLabel promptLabelH = new JLabel("Number of Holes: ");
+            inputH = new JTextField(20);
+            inputH.setVisible(true);
+            inputH.addActionListener(new ButtonClickListener());
+            
+            inputpanel.add(promptLabelH);
+            inputpanel.add(inputH);
+            optionPanel.add(inputpanel);
+            
+            JPanel inputpanel2 = new JPanel();
+            inputpanel2.setLayout(new FlowLayout());
+            JLabel promptLabelS = new JLabel("Number of Seeds: ");
+            inputS = new JTextField(20);
+            inputS.setVisible(true);
+            inputS.addActionListener(new ButtonClickListener());
+            
+            inputpanel2.add(promptLabelS);
+            inputpanel2.add(inputS);
+            optionPanel.add(inputpanel2);
+            
+            JPanel inputpanel3 = new JPanel();
+            inputpanel3.setLayout(new FlowLayout());
+            JLabel promptLabelM = new JLabel("Timer Length (ms): ");
+            inputT = new JTextField(20);
+            inputT.setVisible(true);
+            inputT.addActionListener(new ButtonClickListener());
+            
+            inputpanel3.add(promptLabelM);
+            inputpanel3.add(inputT);
+            optionPanel.add(inputpanel3);
+            
+
+            JPanel inputpanel5 = new JPanel();
+            inputpanel5.setLayout(new FlowLayout());
+            JLabel promptLabelP = new JLabel("Who Goes First: ");
+            P1Button.setActionCommand("P1");
+            P2Button.setActionCommand("P2");
+            P1Button.setVisible(true);
+            P2Button.setVisible(true);
+            P1Button.addActionListener(new ButtonClickListener());
+            P2Button.addActionListener(new ButtonClickListener());
+            inputpanel5.add(promptLabelP);
+            inputpanel5.add(P1Button);
+            inputpanel5.add(P2Button);
+            optionPanel.add(inputpanel5);
+            
+            
+            
+            
+            JPanel inputpanel4 = new JPanel();
+            inputpanel4.setLayout(new FlowLayout());
+            JLabel promptLabelR = new JLabel("Random Seeds: ");
+            yesButton.setActionCommand("Yes");
+            noButton.setActionCommand("No");
+            yesButton.setVisible(true);
+            noButton.setVisible(true);
+            yesButton.addActionListener(new ButtonClickListener());
+            noButton.addActionListener(new ButtonClickListener());
+            inputpanel4.add(promptLabelR);
+            inputpanel4.add(yesButton);
+            inputpanel4.add(noButton);
+            optionPanel.add(inputpanel4);
+            
+            
+            JPanel launchPanel = new JPanel();
+            launchPanel.setLayout(new FlowLayout());
+            launchPanel.add(launchButton);
+            launchButton.setVisible(false);
+            launchButton.setActionCommand("Launch");
+            launchButton.addActionListener(new ButtonClickListener());
+            newScreen.add(launchPanel);
+        newScreen.setVisible(true);
+    }
+    public void Launch() {
+		if(player1Set&&randomSeedset){
+			launchButton.setVisible(true);
+		}
+	}
+    
+    private class ButtonClickListener implements ActionListener{
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            
+            if( command.equals( "Input Information" ))  {
+            	optionPanel.setVisible(true);
+               inputButton.setEnabled(false);
+            }
+            if( command.equals( "Use Default" ))  {
+            	holes=6;
+            	seeds=4;
+            	timerLength=0;
+            	playerFirst='F';
+            	randomSeeds='S';
+               wait = false;
+       			newScreen.dispose();
+            }
+            else if( command.equals( "P1" )){
+            	player1Set=true;
+            	playerFirst='F';
+            	P1Button.setEnabled(false);
+            	P2Button.setEnabled(true);
+            	Launch();
+            }
+            else if( command.equals( "P2" )){
+            	player1Set=true;
+            	playerFirst='S';
+            	P1Button.setEnabled(true);
+            	P2Button.setEnabled(false);
+            	Launch();
+            }
+            else if( command.equals( "Yes" )){
+            	randomSeedset=true;
+            	randomSeeds='R';
+            	noButton.setEnabled(true);
+            	yesButton.setEnabled(false);
+            	Launch();
+            }
+            else if( command.equals( "No" )){
+            	randomSeedset=true;
+            	randomSeeds='S';
+            	yesButton.setEnabled(true);
+            	noButton.setEnabled(false);
+            	Launch();
+            }
+            else if( command.equals( "Launch" )){
+            	seedSet=true;
+            	seeds = Integer.parseInt(inputS.getText().trim());
+            	holesSet=true;
+            	holes = Integer.parseInt(inputH.getText().trim());
+            	timerSet=true;
+            	timerLength = Integer.parseInt(inputT.getText().trim());
+            	wait = false;
+        		newScreen.dispose();
+            }
+            
+            else if( command.equals( "Quit" )){//Quit Button
+                System.exit(0);
+            }
+        }
+        
+    }
+}
+

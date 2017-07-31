@@ -1,0 +1,30 @@
+3/10/2017
+Got assignments and added burndown chart.  Will work on OTH6 and checkpoint 1 for today.  No impediments.
+
+3/13/2017
+Finished all assigned tasks except CRA1 and updated burndown chart and backlog.  Will work on it later this week.  Impediment with the backlog.htm: it's not working.
+
+3/18/2017
+Found a tree data structure and researched some stuff about minimax. May decide not to use this tree though.
+
+3/20/2017
+Did retrospecive yesterday and planned for sprint 2.  Today, I researched the minimax algorithm and edited the S1Retrospective document a little for grammar and will begin working on the AI portion tomorrow.  No impediments.
+
+3/22/2017
+Finished the new tasks from the changes and testing.  Will work on the AI today/tomorrow. No impediments.
+
+3/25/2017
+Added some AI stuff.  It probably won't work, but I'll work on getting to work tomorrow and writing unit tests for it.  No impediments.
+
+3/27/2017
+Haven't done anything.  Will work on the AI stuff tomorrow, but it shouldn't be too hard.  I just need to add the "Min/Max" differentiator for each depth.  I have the tree created and the algorithm that traverses it, but don't have the utility function.
+
+3/28/2017
+Finished getting it to compile and wrote a sample unit test.  The AI doesn't work yet but i'm waiting on the utility function and maybe a minor tweak in the traversal method.  
+
+3/29/2017
+Finished AI.  Might need to add one little change.  Also wrote the documentation for the methods in the AI class and Board class.
+No impediments.
+
+3/3/2017
+Wrote some skeleton code for server/client functions.  Will work on improving the AI and the server/client functions in a bit.  No impediments.

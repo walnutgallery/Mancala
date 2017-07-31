@@ -1,0 +1,48 @@
+import java.util.ArrayList;
+
+import com.scalified.tree.TreeNode;
+import com.scalified.tree.multinode.ArrayMultiTreeNode;
+
+public class AI {
+	
+	private int maxDepth;
+	private int bestMove = 0;
+	private int numNodes = 0;
+
+	public AI(int _maxDepth){
+		maxDepth = _maxDepth;
+	}
+	
+	
+	public double eval(Board node, boolean playerOneOrTwo){
+		numNodes = 0;
+		return miniMax(node,maxDepth, playerOneOrTwo);
+	}
+	//
+	public double miniMax(Board board, int depthToGo, boolean playerOneOrTwo){
+		int local = -1;
+		boolean maximize = (playerOneOrTwo);
+		double maxOrMin = maximize ? -9999: 9999;
+		numNodes++;
+		if(board.checkEndState() || depthToGo == 0)
+			return board.utility();
+		//create children 
+		ArrayList<Board> children = board.getChildren(playerOneOrTwo);
+		//explore
+		for(Board child : children){
+			double nextUtility = miniMax(child, depthToGo-1, playerOneOrTwo);
+			if(maxOrMin == nextUtility && nextUtility > maxOrMin){
+				maxOrMin = nextUtility;
+				local = child.previous;
+			}
+		}
+		bestMove = local;
+		return maxOrMin;
+	}
+	public int getBestMove(){
+		return bestMove;
+	}
+				
+}
+
+

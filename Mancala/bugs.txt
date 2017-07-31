@@ -1,0 +1,4 @@
+Bugs list:
+fix pie rule button, as soon as clicks it should do pie rule
+finish client / server.....
+fix start screen (only show player - player and player-computer)

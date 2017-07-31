@@ -1,0 +1,9 @@
+
+public class AI {
+	/**
+	 * 
+	 * @param _b
+	 */
+	public AI(Board _b){}
+	
+}

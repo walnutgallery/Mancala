@@ -1,0 +1,471 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
+public class Board{
+	int numHouses;
+	public int [][] board;
+	static int [] indexToRow;
+	static int [] indexToCol;
+	public int storePlayer1, storePlayer2;
+	public int moveCounter = 0;
+	public Board parent = null;
+	public int previous = -999;
+	public int pitsOnSide1 = 0;
+	public int pitsOnSide2 = 0;
+	int [] randomArray;
+	public boolean pieMoveConsidered;
+	int numSeeds;
+	
+	/** Initializes a board for use in the client/server.  
+	 * 	
+	 * @param _numHouses The number of houses.  Can be from 4-9.
+	 * @param _numSeeds Can be from 4-9.
+	 * @param _randomSeeds True if you want to randomly distribute the seeds.
+	 */
+	public Board(int _numHouses, int _numSeeds, boolean _randomSeeds){
+		numHouses = _numHouses;
+		numSeeds = _numSeeds;
+		board = new int [2][numHouses];
+		initializeIndexMappings(numHouses);
+		int [] randomizedInput = new int [numHouses];
+		if(_randomSeeds){
+			randomizedInput = createRandomArray(numHouses);
+		}
+		for(int i = 0; i < numHouses; i ++){
+			board[0][i] = _randomSeeds ?  randomizedInput[numHouses-1-i] : _numSeeds;
+			board[1][i] = _randomSeeds ? randomizedInput[i] : _numSeeds;
+		}
+		
+		pitsOnSide1 += _numSeeds*_numHouses;
+		pitsOnSide2 += _numSeeds*_numHouses;
+		storePlayer1 = storePlayer2 = 0;
+	}
+	
+	public Board(int _numHouses, int _numSeeds,boolean _randomSeeds, int[] randomSeeds){
+		numHouses = _numHouses;
+		numSeeds = _numSeeds;
+		board = new int [2][numHouses];
+		initializeIndexMappings(numHouses);
+		
+		for(int i = 0; i < numHouses; i ++){
+			board[0][i] = _randomSeeds ?  randomSeeds[numHouses-1-i] : _numSeeds;
+			board[1][i] = _randomSeeds ? randomSeeds[i] : _numSeeds;
+		}
+		
+		pitsOnSide1 += _numSeeds*_numHouses;
+		pitsOnSide2 += _numSeeds*_numHouses;
+		storePlayer1 = storePlayer2 = 0;
+	}
+	
+	/** Returns the randomly created array for use in DataServer.
+	 * 
+	 * @return Randomly distributed array.
+	 */
+	public int [] getRandomArray(){
+		return randomArray;
+	}
+	
+	/** Distributes 
+	 * 
+	 * @param numHouses
+	 * @return
+	 */
+
+	int [] createRandomArray(int numHouses){
+		randomArray = new int[numHouses];
+		int counter = 0;
+		while(true){
+			while(counter < numHouses*numSeeds){
+				randomArray[(int) (Math.random() * numHouses)]++;
+				counter++;
+			}
+			boolean anyEmpty = false;
+			for(int pits : randomArray){
+				if(pits == 0){
+					anyEmpty = true;
+				}
+			}
+			if(anyEmpty == false)
+				break;
+		}
+		return randomArray;
+	}
+	
+	/** Secondary Constructor
+	 * takes in a 2d array of ints that represents a board and the store of each player.  Doesn't check for board
+	 * validity or end state.
+	 * Used in the clone and test functions.
+	 * @param _board  2d array of ints of size 2xnumHouses.  Throws Invalid board error if wrong dimensions.
+	 * @param _score1 store of player 1.
+	 * @param _score2 store of player 2.
+	 * @param _numHouses the number of houses.  
+	 */
+	public Board(int [][] _board, int _score1, int _score2, int _numHouses){
+		numHouses = _numHouses;
+		initializeIndexMappings(numHouses);
+		if(_board.length == 2 && _board[0].length  == numHouses && _board[1].length == numHouses){
+			board = new int [2][numHouses];
+			for(int row = 0 ; row < 2; row ++){
+				for(int column = 0; column < numHouses; column ++){ 
+					board[row][column] = _board[row][column]; 
+					if(row == 0)
+						pitsOnSide1 += _board[row][column];
+					else
+						pitsOnSide2 += _board[row][column];
+				}
+			}
+		}
+		else{
+			throw new IllegalArgumentException("Invalid board");
+		}
+		storePlayer1 = _score1;
+		storePlayer2= _score2;
+	}	
+	
+	/** Creates a string representation of the board for debugging purposes
+	 * 
+	 */
+	public String toString(){
+		String boardString = Integer.toString(storePlayer1) +"|\t|";
+		boolean addScore = true;
+		for(int [] column : board){
+			for(int elem: column){
+				boardString += elem +"\t |";
+			}
+			if(addScore){
+				boardString += Integer.toString(storePlayer2) + "\n \t|";
+				addScore = false;
+			}
+		}
+		return boardString.substring(0,boardString.length()-1); 		
+	}
+	
+	/** Returns an array of all the children of a certain board.
+	 * The children are the possible boards that can be made in one player's turn including the pie move.
+	 * If the child has another move, then we include the next move.
+	 * Used in the miniMax function.
+	 * @param playerOneOrTwo
+	 * @return
+	 */
+	public ArrayList<Board> getChildren(boolean playerOneOrTwo){
+		ArrayList<Board> boards = new ArrayList<Board>();
+		if(this.moveCounter == 1 && !pieMoveConsidered){
+			System.out.println("piemove considered");
+			Board pieChild = cloneChild(this);
+			pieChild.movePiece(-1, -1, true);
+			pieMoveConsidered = true;
+			boards.add(pieChild);
+		}
+		for(int moves : validMoves(playerOneOrTwo)){
+			Board child = null;	
+			child =  cloneChild(this);
+			int row = playerOneOrTwo? 0 : 1;
+			boolean freeTurn = child.movePiece(row, moves, false);
+			if(freeTurn){
+				ArrayList<Board> subChildren = child.getChildren(playerOneOrTwo);
+				for(Board subs : subChildren){
+					subs.previous = moves;
+					boards.add(subs);
+				}
+			}
+			
+			boards.add(child);
+		}	
+		return boards;
+	}
+	
+	/** Clones a parent and sets the child's parent to toCopy
+	 * 
+	 * @param toCopy
+	 * @return
+	 */
+	public Board cloneChild(Board toCopy){
+		Board child = new Board(toCopy.board, toCopy.storePlayer1, toCopy.storePlayer2, toCopy.numHouses);
+		child.pieMoveConsidered = toCopy.pieMoveConsidered;
+		child.moveCounter = toCopy.moveCounter;
+		child.parent = toCopy;
+		child.previous = toCopy.previous;
+		return child;
+	}
+	
+	/** Copies the board.
+	 * 
+	 * @param toCopy board you want to copy.
+	 * @return the copied board
+	 */
+	public Board copy(Board toCopy){
+		Board copied = new Board(toCopy.board, toCopy.storePlayer1, toCopy.storePlayer2, toCopy.numHouses);
+		copied.pieMoveConsidered = toCopy.pieMoveConsidered;
+		copied.moveCounter = toCopy.moveCounter;
+		copied.parent = toCopy.parent;
+		copied.previous = toCopy.previous;
+		copied.pieMoveConsidered = toCopy.pieMoveConsidered;
+		copied.pitsOnSide1 = toCopy.pitsOnSide1;
+		copied.pitsOnSide2 = toCopy.pitsOnSide2;
+		return copied;
+	}
+	
+	
+	/** Determines if a move will get an extra turn.
+	 * Used in the runningGame method
+	 * @param _row The row that the player picks.  0 is assumed to be for player 1 and 1 for player 2.  -1 if using pieRule.
+	 * @param _column The column that the player picks and assumes player picks 0-5. -1 if using pieRule.
+	 * @param _pieRule true if you want to use the pieRule else false.  Make sure _row=_column=-1
+	 * @return
+	 */
+	public boolean extraTurn(int _row, int _column, boolean _pieRule){
+		if(_pieRule && _row == -1 && _column == -1)
+			return false;
+		int piecesToMove = board[_row][_column];
+		int index = _row == 0 ? _column : numHouses*2 - _column;
+		int lastIndex = Math.floorMod(index-piecesToMove-piecesToMove/(numHouses+2+index),numHouses*2+2);
+		boolean playerOneOrTwo = _row == 0;
+
+		return (lastIndex == numHouses*2+1 && playerOneOrTwo) || (lastIndex == numHouses && !playerOneOrTwo);
+	}
+	
+	/** Moves pieces given a row and column and returns a boolean if the player gets to go again.  Doesn't check for
+	 * end state.
+	 * Doesn't have a check for player turn, but will throw an exception if the player makes an invalid move.
+	 * @param _row The row that the player picks.  0 is assumed to be for player 1 and 1 for player 2.  -1 if using pieRule.
+	 * @param _column The column that the player picks and assumes player picks 0-5. -1 if using pieRule.
+	 * @param _pieRule true if you want to use the pieRule else false.  Make sure _row=_column=-1
+	 * @return true if the player gets to go again(when he/she lands on mancala) else false.
+	 * 
+	 */
+	public boolean movePiece(int _row, int _column, boolean _pieRule){
+		if(_pieRule && moveCounter == 1){
+            previous = _column;
+            for(int i = 0; i < numHouses; i ++){
+                int temp = board[indexToRow[i]][indexToCol[i]];
+                board[indexToRow[i]][indexToCol[i]] = board[indexToRow[i+numHouses+1]][indexToCol[i+numHouses+1]];
+                board[indexToRow[i+numHouses+1]][indexToCol[i+numHouses+1]] = temp;
+            }
+            int temp = storePlayer1;
+            storePlayer1 = storePlayer2;
+            storePlayer2 = temp;
+            temp = pitsOnSide1;
+            pitsOnSide1 = pitsOnSide2;
+            pitsOnSide2 = temp;
+            moveCounter++;
+            return false;
+        }
+		else if(_pieRule && _row != -1 && _column != -1){
+			throw new IllegalArgumentException("Invalid Pi Move.");
+		}
+		
+		
+		//Normal Move
+		if((_row == 0 || _row == 1) && (_column >= 0 && _column < numHouses)){ 
+			previous = _column;
+			boolean playerOneOrTwo = _row == 0;
+			int piecesToMove = board[_row][_column];
+			
+			if(piecesToMove == 0){
+				System.out.println(this.toString());
+				throw new IllegalArgumentException("Invalid move" + _row + " " + _column);
+			}
+			
+			board[_row][_column] = 0;
+			int index = _row == 0 ? _column : numHouses*2 - _column;
+			int lastIndex = 0;
+		
+			while(piecesToMove != 0){
+				index = index == 0 ? numHouses*2+1 : index-1;
+				if(piecesToMove == 1){
+					lastIndex=index;
+				}
+				
+				if(indexToRow[index]!= -1)
+					board[indexToRow[index]][indexToCol[index]]++;
+				else if(index == numHouses*2+1 && playerOneOrTwo)
+					storePlayer1++;
+				else if(index == numHouses && !playerOneOrTwo)
+					storePlayer2++;
+				piecesToMove = (playerOneOrTwo && index == numHouses) || 
+						(!playerOneOrTwo && index == numHouses*2+1)? 
+						piecesToMove: piecesToMove-1;
+			}
+			
+			if((lastIndex == numHouses*2+1 && playerOneOrTwo) || (lastIndex == numHouses && !playerOneOrTwo)){
+				return true;
+			}
+			else if(playerOneOrTwo && 
+					(lastIndex >= 0 && lastIndex <= numHouses-1) && 
+					board[indexToRow[lastIndex]][indexToCol[lastIndex]] == 1 &&
+					board[1][indexToCol[lastIndex]] != 0){
+						storePlayer1 += board[1][indexToCol[lastIndex]] + 1;
+						board[1][indexToCol[lastIndex]] = 0;
+						board[indexToRow[lastIndex]][indexToCol[lastIndex]] = 0;
+			}
+			else if(!playerOneOrTwo && 
+					(lastIndex >= numHouses+1 && lastIndex <= numHouses*2) && 
+					board[indexToRow[lastIndex]][indexToCol[lastIndex]] == 1 &&
+					board[0][indexToCol[lastIndex]] != 0){
+						storePlayer2 += board[0][indexToCol[lastIndex]] + 1;
+						board[0][indexToCol[lastIndex]] = 0;
+						board[indexToRow[lastIndex]][indexToCol[lastIndex]] = 0;
+			}
+			moveCounter++;
+			return false;
+		}
+		else{
+			throw new IllegalArgumentException("Invalid move");
+		}
+	}
+	/** Gives the valid move choices for a player.
+	 * Used in the getChildren method. 
+	 * @param playerOneOrTwo true if playerOne and false for playerTwo
+	 * @return Arraylist of integers that represent the columns that the player can choose. 
+	 */
+	public ArrayList<Integer> validMoves(boolean playerOneOrTwo){
+		ArrayList <Integer> validColumns = new ArrayList <Integer>();
+		int row = playerOneOrTwo ? 0 : 1;
+		for(int i =0 ; i < board[row].length; i ++){
+			if(board[row][i] != 0){
+				validColumns.add(i);
+			}
+		}
+		return validColumns;
+	}
+	
+	/** Determine if a move is valid.
+	 * 
+	 * @param row The row of the move you want to make.
+	 * @param column The column of the move you want to make.
+	 * @return true if it's valid and false if it is.
+	 */
+	public boolean validMove(int row, int column){
+		return board[row][column] != 0;
+	}
+	
+	/** Check if the game is over.  
+	 * If one side is empty, the game is over and all of the stones on the other side go to
+	 * the other player's store.  This method will move them there and return true or false.
+	 * @return true if the game is over else false.  
+	 */
+	public boolean checkEndState(){
+		boolean check = true;
+		int playerOneSum, playerTwoSum;
+		playerOneSum = playerTwoSum = 0; 
+		for(int i : board[0]){
+			playerOneSum += i;
+		}
+		for(int j  : board[1]){
+			playerTwoSum += j;
+		}
+		boolean emptyHouses = playerOneSum == 0 || playerTwoSum == 0;
+		if(emptyHouses){
+			int rowIndex = playerOneSum == 0 ? 1 : 0;
+			int sum = 0;
+			for(int i = 0 ; i < board[rowIndex].length ; i++){
+				sum += board[rowIndex][i];
+				board[rowIndex][i] = 0;
+			}
+			if(rowIndex == 1)
+				storePlayer2 += sum;
+			else
+				storePlayer1 += sum;
+		}
+		return emptyHouses;
+	}
+	
+	public String outcome(){
+		if(storePlayer1 == storePlayer2)
+			return "TIE";
+		else if(storePlayer1 > storePlayer2)
+			return "WINNER";
+		else
+			return "LOSER";
+		
+	}
+	
+	
+	/** Getter method
+	 * for the 2d array.
+	 * @return 2d array of ints representing the board.
+	 */
+	public int [][] getBoardArray(){ return board; }
+	/** Getter method
+	 * for the store of player 1.
+	 * @return Returns an int of player one's store.
+	 */
+	public int getPlayerOneStore(){ return storePlayer1; }
+	/** Getter method
+	 * for the store of player 2.
+	 * @return Returns an int of player two's store.
+	 */
+	public int getPlayerTwoStore(){ return storePlayer2; }
+	
+	/**Setter method for player 1's store
+	 * 
+	 * @param _storePlayer1 the number you want to set it to
+	 */
+	public void setPlayerOneStore(int _storePlayer1){storePlayer1 = _storePlayer1;}
+	/**Setter method for player 2's store
+	 * 
+	 * @param _storePlayer1 the number you want to set it to
+	 */
+	public void setPlayerTwoStore(int _storePlayer2){storePlayer2 = _storePlayer2;}
+	
+	/** Initializes the indexToRow and indexToCol arrays for use in constructors.  
+	 * 
+	 * @param houses the number of houses you want. 
+	 */
+	public void initializeIndexMappings(int houses){
+		indexToRow = new int [houses*2+2];
+		indexToCol = new int [houses*2+2];
+		int colCounter = 0;
+		for(int i = 0; i < houses*2+2 ; i++){
+			if(i == houses || i == houses*2+1){
+				indexToRow[i] = -1;
+				indexToCol[i] = -1;
+			}
+			else{
+				boolean reverseCounting = i < houses;
+				if(colCounter == houses)
+					colCounter = colCounter - 1;
+				indexToRow[i] = reverseCounting? 0 : 1;
+				indexToCol[i] = colCounter;
+				colCounter = reverseCounting? colCounter + 1: colCounter - 1;
+			}
+		}
+	}
+	
+	/** Calculates the total number of pits on both player's houses
+	 * Used in the utility function.
+	 */
+	public void calculatePitsOnSides(){
+		for(int row = 0 ; row < 2; row ++){
+			for(int column = 0; column < numHouses; column ++){ 
+			if(row == 0)
+				pitsOnSide1 += board[row][column];
+			else
+				pitsOnSide2 += board[row][column];
+			}
+		}
+	}
+	
+	/**Evaluates a board and gives it a utility value
+	 * It prioritizes scoring first and the number of pits in the player's houses second
+	 * @return an integer representing the utility of that board.
+	 */
+	public int utility(boolean playerOneOrTwo){
+		calculatePitsOnSides();
+		int utility = 0;
+		if(!playerOneOrTwo){
+			utility = (storePlayer1-storePlayer2)*3 + (pitsOnSide1 - pitsOnSide2);
+		}
+		else{
+			utility = (storePlayer2-storePlayer1)*3 + (pitsOnSide2 - pitsOnSide1);
+		}
+		return utility;
+	}
+	
+}
+
+
+	
+	
+

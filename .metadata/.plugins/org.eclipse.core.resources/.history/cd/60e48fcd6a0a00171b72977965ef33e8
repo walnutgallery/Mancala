@@ -1,0 +1,93 @@
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Map;
+public class foobar1 {
+
+	public class Pair<Integer, Integer1> {
+	    public int first = 0;
+	    public int second = 0;
+	}
+	
+	public static void main(String[] args) {
+		// problem 1
+//		int [] x = {14,27,1,4,2,50,3,1};
+//		int [] y = {2,4,-4,3,1,1,14,27,50};
+//		int xSum = 0;
+//		for(int i : x){
+//			xSum+=i;
+//		}
+//		int ySum = 0;
+//		for(int j :y){
+//			ySum+=j;
+//		}
+		
+		
+		
+		
+		
+		//problem 2
+//		int ans = x.length > y.length? xSum-ySum: ySum-xSum;
+//		System.out.println(ans);
+//		int [] pegs ={4,30,50};
+//		int front,back;
+//		front = back = 0;
+//		for(int i = 0 ; i < pegs.length-1; i++){
+//			front+=pegs[i]*(Math.pow(-1,i));
+//			back+=pegs[i+1]*(Math.pow(-1,i));
+//		}
+//		
+//		int sum = back-front;
+//		int numerator = sum*2;
+//		int denominator = pegs.length %2 == 0 ? 3 : 1;
+//	    if(numerator%3==0 && denominator ==3){
+//		    numerator=numerator/3;
+//		    denominator=1;
+//		}
+//	    
+//        int [] temp = {numerator,denominator};
+//        boolean checker = false;
+//        double test = (double) numerator/denominator;
+//        if(test <= 1)
+//        	checker = true;
+//        for(int i = 0 ; i < pegs.length-1; i ++){
+//            test = pegs[i+1]-test-pegs[i];
+//            if(test <= 1){
+//            	checker = true;
+//            	break;
+//            }
+//        }
+//		System.out.println(checker);
+//	}
+		
+		
+		
+		//problem 3
+//		long test;
+//		int x=100000;
+//		int y=100000;
+//		int param = x+y-1;
+//		test=(long) (.5*param*(param-1)+1)+(x-1);
+//		String str = Long.toString(test);
+		int [] list = {2,3,5,7};
+		int [][] table = new int [list.length][list.length];
+		
+		for(int i = 0; i < list.length; i ++){
+			for(int j = 0; j <= i; j++){
+				int temp1= list[i];
+				int temp2  = list[j];
+				if(list[i]%list[j] == 0)
+					table[i][j] = 1;
+				else
+					table[i][j] = 0;
+			}
+		}
+		for(int i = 0; i < list.length; i ++){
+			for(int j = 0; j <= i; j++){
+				System.out.print(table[i][j]+ " ");
+			}
+			System.out.println("\n");
+		}
+		System.out.println("percent mod" + 4%4);
+}		
+	
+}

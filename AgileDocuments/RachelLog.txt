@@ -1,0 +1,53 @@
+3/09/2017
+  Set up gitHub repository shared it with instructors.
+03/10/2017
+  Created intial backlog chart and Sprint 1 backlog. Will assign Sprint 1 assignments and turn in Checkpoint 1 to ecampus by 8PM.
+  Planning to start MTG2 tomorrow and set up working environment. No issues.
+03/13/2017
+  Have been exploring different graphics options. Set up working environment. Will be building game screen tomorrow. 
+  Removed the htm file for simplicity and ease for everyone to edit the excel file. No impediments.
+03/14/2017
+  Built the game screen successfully. The program will initially set up a game screen with 4 seeds per pot. Having troubles 
+  finding a way to "redraw" or "update" the screen. JComponents do not allow layering and therefore we would need to 
+  create a new gameSreen object every time a move is made, which seems very inneficient as opposed to just redrawing the pieces.
+  Will look more into this tomorrow, However this functionality is not exactly a part of Sprint 1, would just be more
+  convenient to figure this out now, so priority will be put on the Game Manager.
+03/15/2017
+  UPDATE: Found solution, will be using LayeredPanes to edit seeds without editing entire board.
+  Useful links I have found pertaining to graphics: 
+      https://docs.oracle.com/javase/tutorial/uiswing/components/layeredpane.html
+      https://docs.oracle.com/javase/7/docs/api/javax/swing/JLayeredPane.html
+  Outlined the GameManager and the functions needed for this. Still working on the multi-line seeds showing. Began working on
+  Mouse Events for the GameScreen. Will be camping on 03/16/2017-03/18/2017 aka not much cell service.
+  Will Update the Doxygen with new specifications when I am set in stone as to the design of the gameScreen. (Just double checking
+  that what I have will take care of everything we need for the project so that we won't need to alter later)
+03/19/2017
+  Game is now playable. Game screen update after every click. Found bugs in restricting player moves. Lots of bugs towards end of game
+  
+ 03/20/2017
+  Finalized the Agile Documents and wrote retrospective. Will begin working on Sprint 2 tomorrow
+  
+  03/22/2017
+    No progress.
+  
+  03/26/2017
+    Finished making turn indicators and having a graphically variable game board. Began setting up server- however need to completely
+    reorder project to have it compatible with client-server model. With discuss with team at tonights meeting.
+    Client Server Model is being based on: http://cs.lmu.edu/~ray/notes/javanetexamples/
+
+03/27/2017
+  Created the timer function with working GUI coorespondance. Need to connect the timer with end game. No impediments
+  
+ 03/29/2017
+  Connected Timer with end game. In process of re-doing end game screen. In process of fixing turn indicator. Doing minor debugging.
+  Implementing more functions in the server-client model
+
+03/30/2017
+	Finished ending game screen. Wrote Skeleton code for client/server.
+	Updated charts. Finalizing reports. 
+	
+04/03/2017
+	Slightly edited random seeds to be equal on both sides. Made outline for server/client model. No impediments
+
+04/05/2017
+	Began implementing client functions. Finding that alot of little things need to be done on edits. No impediments

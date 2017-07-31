@@ -1,0 +1,301 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.swing.Timer;
+
+
+/**
+ * A TCP server that runs on port 9090.  When a client connects, it
+ * sends the client the current date and time, then closes the
+ * connection with that client.  Arguably just about the simplest
+ * server you can write.
+ */
+public class DataServer {
+	
+    public static void main(String[] args) throws IOException {
+        ServerSocket listener = new ServerSocket(9090);
+        System.out.println("The Mancala Server is Running");
+        try {
+            while (true) {   
+                Game gm = new Game();
+                gm.optScreen = new OptionGUI();
+    	        while (gm.optScreen.Wait()==true){
+    	            System.out.print("");
+    	        }
+    	        gm.infoString= gm.optScreen.getINFO();
+                gm.setInfo(gm.infoString);
+                
+                Game.Player playerOne = gm.new Player(listener.accept(), true);
+                Game.Player playerTwo = gm.new Player(listener.accept(), false);     
+                playerOne.setOpponent(playerTwo);
+                playerTwo.setOpponent(playerOne);
+                gm.currentPlayer = playerOne; // this should change when we get options screen
+                playerOne.start();
+                playerTwo.start();
+            }
+        }
+        finally {
+            listener.close();
+        }
+    }
+
+}
+
+/*************************************************************************
+ * Server stuff below represents the start on what is needed for sprint 3
+ **************************************************************************/
+
+/**
+ * Checks if anticipated move is valid
+ * @param player, player that is trying to move
+ * @param column, column that said player is trying to move to
+ * @return
+ */
+	class Game{
+		
+		Board gameBoard;
+		int numPlayersConnected;
+		int timeLimit;
+		boolean hasBegun = false;
+		int numHoles;
+		Player currentPlayer;
+		OptionGUI optScreen;
+		String infoString;
+		String firstPlayerInfo;
+		String secondPlayerInfo = "";
+		
+		public void setInfo(String _infoString){
+	        //System.out.println(_infoString);
+	        
+			String[] tokens = _infoString.split("\\s+");
+			numHoles = Integer.parseInt(tokens[1]);
+			timeLimit = Integer.parseInt(tokens[3]);
+			//int[] array =gameBoard.getRandomArray();
+			//secondPlayerInfo = "";
+			gameBoard = new Board(Integer.parseInt(tokens[1]),Integer.parseInt(tokens[2]), tokens[5].equals("R"));
+	        if(tokens[4].equals("F")){
+	        	firstPlayerInfo = _infoString;
+	        }
+        	tokens[4] = "S";
+        	for(int i = 0; i < tokens.length; i++){
+               secondPlayerInfo=secondPlayerInfo+tokens[i] +" ";
+            }
+        	
+        	
+			if(tokens[5].equals("R")){
+	        	int[] array =gameBoard.getRandomArray();
+	        	for(int i = 0; i < array.length; i++){
+	        		firstPlayerInfo += " " + array[i];
+	        		secondPlayerInfo += " " + array[i];
+	            }
+	        }
+	        System.out.println(secondPlayerInfo);
+			System.out.println(firstPlayerInfo);
+			gameBoard = new Board(Integer.parseInt(tokens[1]),Integer.parseInt(tokens[2]), tokens[4] == "R");
+			
+
+		}
+		
+		public synchronized void makeMove(Player player, int column, boolean pieMove) throws IllegalArgumentException{
+			int row = player.isPlayerOne ? 0 : 1;
+			//convert to our board
+			//System.out.println("Row " + row + "Column " + column );
+			if(row == 0){
+				column -=1;
+			}
+			else{
+				column = numHoles - (numHoles - column);
+			}
+			if(gameBoard == null) 
+				System.out.println("gameBoard");
+			
+			
+			gameBoard.movePiece(row, column, pieMove);
+		}
+
+		
+		public boolean validMove(Player player, int column){
+			return gameBoard.validMove(player.isPlayerOne == true ? 0 : 1, column);
+		}
+		/**
+		 * checks endState
+		 * @return true if game is over, false otherwise
+		 */
+		public boolean gameOver(){
+			if(gameBoard.checkEndState()){
+				return true;
+			}
+			return false;
+		}
+		
+		public void endGame(boolean playerOneOrTwo){
+			
+		}
+		
+	
+		
+		/**
+		* Each player has a thread to send requests to/from server	
+		*
+		*/
+		class Player extends Thread{
+			//player, socket, buffered Reader, buffered writer
+			
+			Socket socket;
+			Boolean isPlayerOne;
+			BufferedReader input;
+			PrintWriter output;
+			Player opponent;
+			Boolean isFirst;
+			int time = 15; // change this with options panel
+			Timer timer;
+			
+			
+			/**
+			 * An object to represent every player
+			 * @param _socket, socket to send requests to and from
+			 * @param _playerOneOrTwo, which player is playing
+			 */
+			public Player(Socket _socket, Boolean _isPlayerOne){
+				this.socket = _socket;
+				this.isPlayerOne = _isPlayerOne;
+				try {
+		            input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		            output = new PrintWriter(socket.getOutputStream(), true);
+		            String player;
+		            if(isPlayerOne){
+		            	player = "Player One";
+		            }
+		            else{
+		            	player = "Player Two";
+		            }
+		            output.println("WELCOME"+ " " + player);
+		            Game.this.numPlayersConnected++;
+		            //String infoString = "INFO 6 4 5000 F S";
+		            //first player is always player one
+		            if(isPlayerOne){
+		            	this.isFirst = true;
+		            	currentPlayer = this;
+		            	output.println(firstPlayerInfo); // send board configuration to players
+		            	//setInfo(infoString);
+		            }
+		            else{
+		            	this.isFirst = false;
+		            	output.println(secondPlayerInfo); // send board configuration to players
+		            }
+		            
+		            if(Game.this.numPlayersConnected>=3){
+		            	throw new RuntimeException("Too many players");
+		            }
+		            
+		            
+		        } catch (IOException e) {
+		            //do nothing
+		        	System.out.println("Exception");
+		        }	
+			}
+			
+			public void otherPlayerMoved(String moves){
+				//if(this.currentPlayer){
+					output.println(moves);
+				//}
+			}
+			
+			/**
+	         * Accepts notification of who the opponent is.
+	         */
+	        public void setOpponent(Player opponent) {
+	            this.opponent = opponent;
+	        }
+			
+			public void run() {
+		        try {
+		        	//Get this configuration from the options panel later
+		            
+		            
+		            // Repeatedly get commands from the client and process them.
+		            while (true) {
+		            	System.out.println("currentPlayer: " + isPlayerOne );
+		                String command = input.readLine();
+		                //if(!command.equals(null)){
+			                String[] tokens = command.split("\\s+");
+			                System.out.println("tokens 0 : "+ tokens[0]);
+			                switch(tokens[0]){
+			                	case "READY":
+			                		//when all clients are connected, send begin
+			                		if(numPlayersConnected == 2){
+				                		output.println("BEGIN"); // check, send this to both clients?
+				                		
+				                		Game.this.hasBegun = true;
+			                		}
+			                		
+			                		break;
+			                		
+			                	case "0": case "1": case "2": case "3":
+			            		case "4": case "5": case "6": case "7": 
+			            		case "8": case "9":
+			            			//For the players
+			            			//check valid, check end
+			            			currentPlayer = currentPlayer.opponent;
+			            			currentPlayer.otherPlayerMoved(command);
+			            			
+			            			// For the Dummy Board
+			            			int index = 0;
+			            			while(index < tokens.length){
+				            			try{
+				            				makeMove(this, Integer.parseInt(tokens[0]),false);
+				            			}
+				            			catch(IllegalArgumentException e){
+				            				output.println("ILLEGAL"); // make this send to both
+				            			}
+				            			index++;
+			            			}
+			            			//check if move is valid, do the move, check for end game
+			            			/*
+			            			 * iterate through all tokens, for each token
+			            			 * if(token click is a valid move) - NOTE: this needs conversion, out setup doesn't match the messages, conversion in client file
+			            			 * 	call move piece
+			            			 * else
+			            			 * 	call game over with INVALID
+			            			 * check for end game
+			            			 * if(game over)
+			            			 * 	notify winner and loser,
+			            			 */
+			            			break;
+			            			
+			            		case "P":
+			            			//do exactly as above, but with pie move and without iteration
+			            			currentPlayer = currentPlayer.opponent;
+			            			currentPlayer.otherPlayerMoved(command);
+			            			try{
+			            				makeMove(this, -1 ,true);
+			            			}
+			            			catch(IllegalArgumentException e){
+			            				output.println("ILLEGAL");
+			            			}
+			            			break;
+			            		
+			            		case "OK":
+			            			break;
+			                }
+		                //} 
+		            }
+		        } catch (IOException e) {
+		        } finally {
+		            try {socket.close();} catch (IOException e) {}
+		        }
+		    }
+		
+		public void main(String[] args) {
+		    GameManager gm = new GameManager();
+		    //gm.launchStartGUI();
+		}
+	}
+}
+

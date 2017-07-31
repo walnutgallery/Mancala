@@ -1,0 +1,7 @@
+Mancala AI Strategy
+
+
+Start with the 3rd hole to get an extra turn, then use the rightmost hole. After that, focus on emptying the rightmost hole. The more empty holes you have on one side, the more likely you are to capture the opponent’s pieces. Always look to see if you can make a move that results in a free turn, and avoid moves that put stones on the opponent’s side.
+
+
+Source: https://www.thespruce.com/mancala-basic-strategy-411832

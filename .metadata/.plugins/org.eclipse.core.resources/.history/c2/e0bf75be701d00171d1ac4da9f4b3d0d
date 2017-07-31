@@ -1,0 +1,198 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JOptionPane;
+
+/*
+ * This Client class represents a start on the functions needed to continue sprint 3
+ * Based on code given in lab
+ */
+
+public class AIClient {
+	private Socket socket;
+	private BufferedReader input;
+	private PrintWriter output;
+	private ClientFunctions clientHelper;
+	boolean isPlayerOne;
+	boolean whoMoved; //T = 1, F =2
+	boolean isTurn = true;
+	boolean isPlayerTwo;
+	boolean isAI = false;
+	/**
+	 * Constructs clients by connecting to server and laying out the start GUI
+	 * Start GUI tells whether it is person - person or person - AI game.
+	 * This determines how the client runs
+	 * @throws IOException 
+	 * @throws UnknownHostException 
+	 * @throws Exception
+	 */
+	public AIClient() throws UnknownHostException, IOException {
+		//setup network
+		String serverAddress = "127.0.0.1";
+        socket = new Socket(serverAddress, 9090);
+        input = new BufferedReader(new InputStreamReader(
+                socket.getInputStream()));
+        output = new PrintWriter(socket.getOutputStream(), true);
+        
+		
+        clientHelper = new ClientFunctions(true); 
+	}
+
+
+	/**
+	 * Main thread will listen for messages from the server
+	 * @throws IOException 
+	 * @throws Exception
+	 */
+	public void play() throws IOException{
+		String response;
+		String moveToSend = "";
+		String tempMessage = "";
+		String[] tokens;
+		
+		try {
+			
+			//WELCOME
+			response = input.readLine();
+			if(response.startsWith("WELCOME")){
+				tokens = response.split("\\s+");
+		//		System.out.println("recieved welcome");
+    			tempMessage = response;
+    			if(tokens[2].equals("One")){
+    				isPlayerOne = true;
+    			}
+    			else{
+    				isPlayerOne = false;
+    			}
+			}
+			//INFO
+			response = input.readLine();
+			System.out.println(response);
+			if(response.startsWith("INFO")){
+				System.out.println("recieved info");
+    			if(clientHelper.init(response)){
+    				clientHelper.receiveWelcome(tempMessage);
+    				output.println("READY");
+        		}
+			}
+			//BEGIN
+			response = input.readLine();
+			if(response.equals("BEGIN")){
+				if(clientHelper.isFirst){
+    				System.out.println("recieved begin");
+        			clientHelper.recieveBegin();
+    				clientHelper.myTurn();
+        			moveToSend = clientHelper.createMoves(isPlayerOne);
+        			
+        			//clientHelper.toggleTurn();
+        			//System.out.println(moveToSend);
+        			clientHelper.endMyTurn();
+        			output.println(moveToSend);
+        			
+        			
+    			}
+				clientHelper.toggleTurn();
+			}
+			
+			
+			//layout GUI
+            while(true){
+            	response = input.readLine();
+            	if(response!= null){
+	            	tokens = response.split("\\s+");
+	            	
+	            	switch(tokens[0]){
+	            		//Not getting into this case??
+	            		case "0": case "1": case "2": case "3":
+	            		case "4": case "5": case "6": case "7": 
+	            		case "8": case "9":
+	            			//recieves moves from server
+	            			//System.out.println("recieved move,   Player: " + isPlayerOne);
+	            			output.println("OK");
+	            			clientHelper.myTurn();
+	            			
+	            			if(isPlayerOne){ // if I am player one, player two moved
+	            				whoMoved = false;
+	            			}
+	            			else{
+	            				whoMoved = true;
+	            			}
+	            			clientHelper.updateBoard(response, whoMoved ,false);
+	            			
+	            			moveToSend = clientHelper.createMoves(isPlayerOne);
+	            			clientHelper.toggleTurn();
+	            			clientHelper.endMyTurn();
+	            			output.println(moveToSend);
+	            			
+	            			//clientHelper.toggleTurn();
+	            			
+	            			break;
+	            		case "P":
+	            			//execute pie move
+	            			System.out.println("recieved pie move");
+	            			output.println("OK");
+	            			clientHelper.myTurn();
+	            			
+	            			if(isPlayerOne){ // if I am player one, player two moved
+	            				whoMoved = false;
+	            			}
+	            			else{
+	            				whoMoved = true;
+	            			}
+	            			
+	            			clientHelper.updateBoard(response, whoMoved, true);
+	            			//output.println("P");
+	            			moveToSend = clientHelper.createMoves(isPlayerOne);
+	            			clientHelper.endMyTurn();
+	            			output.println(moveToSend);
+	            			
+	            			//clientHelper.toggleTurn();
+	            			
+	            			break;
+	            		case "OK":
+	            			//wait to receive moves
+	            			break;
+	            		case "TIME":
+	            			System.out.println("recieved time");
+	            			//wait to see if loser or winner
+	            			break;
+	            		case "LOSER":
+	            			clientHelper.endGame("You Lose!");
+	            			
+	            			break;
+	            		case "WINNER":
+	            			clientHelper.endGame("You Won!");
+	            			
+	            			break;
+	            		case "ILLEGAL":
+	            			//wait for winner / loser
+	            			System.out.println("recieved illegal");
+	            			output.println(moveToSend);
+	            			break;
+	            		default:
+	            			System.out.println("Doesn't recognize response");
+	            			break;
+	            	}
+	            	System.out.println("RESPONSE: " + response + " TO PLAYER " + isPlayerOne);
+	            }
+            	
+            	response = "";
+            }
+		}finally {
+            socket.close();
+        }
+	}
+
+    public static void main(String[] args) throws Exception {
+    	while(true){
+    		AIClient client = new AIClient();
+    		client.play();
+    	}
+   }
+	
+}

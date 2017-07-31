@@ -1,0 +1,236 @@
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+
+import javax.swing.JLabel;
+/*
+ * NEED:
+ * 	a way to identify player 1 vs. player 2 in the client
+ * 
+ */
+public class ClientFunctions {
+	boolean isAI; //if the current client is a ai or human
+	boolean isReady; //if the player is ready
+	boolean hasBegun; //if the game has begun
+	Board board; //the board that the clients are playing on
+	int row; //the row that the client uses.  Player 1 is 0 and player 2 is 1
+	private Socket socket;
+	private PrintWriter output;
+	public GameManager gameManager;
+	private int numHoles;
+	private String moveToSend = "";
+	AI ai;
+	//boolean isPlayerOne;
+	public boolean isFirst;
+	boolean isTurn;
+	
+	
+	/**
+	 * Client functions run differently per human or AI
+	 */
+	public ClientFunctions(){
+		gameManager = new GameManager();
+		//gameManager.clientLaunchStartGUI(); // get AI or HUMAN boolean from here
+		//isAI = gameManager.startScreen.getPlayer1Ai();
+		
+		
+		
+	}
+	
+	public ClientFunctions(boolean _isAI){
+		gameManager = new GameManager();
+		ai = new AI(5,true);
+	}
+	
+	/** Initializes a gameManager/other things you might need
+	 * Delete if not needed.
+	 */
+	public boolean init(String response) {
+		String[] tokens = response.split("\\s+");
+		boolean timer;
+		int timerLength;
+		boolean randomSeeds;
+		//info,holes/side,num seeds, timer, who goes first, standard or random, nums aft = random
+		numHoles = Integer.parseInt(tokens[1]);
+		if(tokens[3] == "0"){
+			timer = false;
+			timerLength = 0;
+		}
+		else{
+			timer = true;
+			timerLength = Integer.parseInt(tokens[3]);
+		}
+		if(tokens[4].equals("F")){
+			isFirst = true;
+			isTurn = true; //this client goes first
+		}
+		else{
+			isFirst = false;
+			isTurn = false;
+		}
+		
+		randomSeeds = false;
+		if(tokens[5]=="R"){
+			randomSeeds = true;
+		}
+		
+		gameManager = new GameManager();
+		
+		gameManager.clientInitGame(numHoles, randomSeeds, timer, timerLength);
+		//gameManager.initGame(numHoles, randomSeeds, timer, timerLength);
+		gameManager.game.timer.pause(true);
+       // frame.pack();
+	//	frame.setVisible(true);
+        
+        return true;
+	}
+	
+	/** Send to server that it's ready
+	 * 
+	 */
+	public void sendReady() {
+		
+	}
+	public String createMoves(boolean isPlayerOne){
+		int move = -1;
+		String moveToSend = "";
+		if(!isAI){
+			//wait for isclick, move = column
+			if(isTurn && isPlayerOne){ 
+				moveToSend = gameManager.clientRunningGame(gameManager.game, numHoles, isPlayerOne);	
+				gameManager.game.messageLabel.setText("Opponents Turn");
+				//System.out.println("Move:" + moveToSend);
+				return moveToSend;
+			}
+			else if(isTurn && !isPlayerOne){
+				moveToSend = gameManager.clientRunningGame(gameManager.game, numHoles, isPlayerOne);	
+				gameManager.game.messageLabel.setText("Opponents Turn");
+				//System.out.println("Move:" + moveToSend);
+				return moveToSend;
+			}
+		
+		}
+		else{
+			//get AI calculated moves
+			boolean extraTurn = true;
+			Board calculatedBoard = gameManager.gameBoard.copy(gameManager.gameBoard);
+			while(extraTurn){
+				ai.eval(gameManager.gameBoard, isPlayerOne);
+				move = ai.getBestMove();
+				int row = isPlayerOne? 0 : 1;
+				row = move == -1 ? -1 : row;
+				extraTurn = calculatedBoard.movePiece(row , move, row == -1);
+			}
+			if(isPlayerOne){ // multiplied by two to symbolize top or bottom row
+				//player 1
+				move +=1;
+				
+			}
+			else{
+				//this means it was player two
+				move = numHoles - (numHoles - move);
+			}
+		}
+		return Integer.toString(move);
+	}
+
+	public void updateBoard(String response, boolean whoMoved, boolean pieMove){
+		//acts as if clicks happen and automatically updates board
+		// TODO make sure the turns align with this
+		String[] tokens = response.split("\\s+");
+		if(tokens[0]=="P"){
+			gameManager.gameBoard.movePiece(-1, -1, true);
+			if(!isAI){
+				gameManager.game.createAndShowGUI(gameManager.gameBoard, numHoles);
+			}
+		}
+		else{
+			int opponentMove;
+			int row=1;
+			int column=0;
+			if(whoMoved){
+				row = 0;
+			}
+			for(int i =0; i<tokens.length; i++){
+				opponentMove = Integer.parseInt(tokens[i]);
+				if(whoMoved){
+					column = opponentMove-1;
+				}
+				else{
+					column = numHoles - (numHoles-opponentMove);
+					
+				}
+				gameManager.gameBoard.movePiece(row, column, false);
+				if(!isAI){
+					gameManager.game.createAndShowGUI(gameManager.gameBoard, numHoles);
+				}
+			}
+		}
+		
+	}
+	
+
+	public void endGame( String winOrLose){
+		//send this string to the end screen
+		gameManager.game.messageLabel.setText(winOrLose);
+	}
+	/**Takes in the board info and sets the correct parameters
+	 * 
+	 * @param boardInfo INFO <int holes per side><int seeds per side><long int time for timer><F|S><S|R hole_config>
+	 */
+	public void recieveBoardInfo(String boardInfo) {
+	}
+	
+	/**Acknowledges that the game has begun.
+	 * calls sendMove if it's player 1. 
+	 */
+	public void recieveBegin() {
+		if(isTurn){
+			gameManager.game.timer.pause(false);
+			gameManager.game.timer.wait(false);
+			gameManager.game.messageLabel.setText("Your Turn!");
+		}
+		else{
+			
+			gameManager.game.timer.pause(false);
+			gameManager.game.timer.wait(true);
+			gameManager.game.messageLabel.setText("Opponents Turn");
+		}
+	}
+	public void toggleTurn(){
+		gameManager.game.player1 = !gameManager.game.player1; 
+	}
+	
+	/** Receive move and if the AI calculate the best move or wait for input if it's a human.
+	 * Updates board with the received move.
+	 * @param move the move that the other player used
+	 */
+	public void receiveOk(String move) {
+	}
+	
+	/** Receive the outcome and ends the game.
+	 * Update client with the outcome including illegal, out of time, winner, loser, and draw. 
+	 * @param outcome ILLEGAL | WINNER | LOSER | DRAW
+	 */
+	public void receiveEnding(String outcome) {
+	}
+	public void receiveWelcome(String welcome) {
+		gameManager.game.messageLabel.setText(welcome);
+	}
+	public void myTurn(){
+		isTurn = true;
+		gameManager.game.timer.pause(false);
+		gameManager.game.timer.wait(false);
+		gameManager.game.timer.update();
+		gameManager.game.messageLabel.setText("Your Turn!");
+	}
+	public void endMyTurn(){
+		gameManager.game.timer.wait(true);
+		isTurn = false;
+		gameManager.game.messageLabel.setText("Opponents Turn");
+	}
+	
+}

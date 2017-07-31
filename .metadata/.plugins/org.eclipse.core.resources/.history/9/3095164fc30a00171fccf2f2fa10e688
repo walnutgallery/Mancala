@@ -1,0 +1,16 @@
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+dependencies {
+    compile 'com.scalified:tree:0.2.4'
+}
+
+public class AITest {
+
+	@Test
+	public void test() {
+		fail("Not yet implemented");
+	}
+
+}

@@ -1,0 +1,37 @@
+import static org.junit.Assert.*;
+import org.junit.Test;
+
+public class AITest {
+	//test with initial board of 6 houses and 4 in each.  depth of 3
+	@Test
+	public void bestMove1() {
+		Board board = new Board(6,4,false);
+		System.out.println(board.toString());
+		AI ai = new AI(5, true);
+		ai.eval(board, true);
+		System.out.println(ai.getBestMove());
+		assertTrue(ai.getBestMove() == 2);
+	}
+	//second player goes first with initial board.
+	@Test
+	public void bestMove2() {
+		Board board = new Board(6,4,false);
+		AI ai = new AI(5, false);
+		ai.eval(board, false);
+		System.out.println(ai.getBestMove());
+		assertTrue(ai.getBestMove() == 2);
+	}
+	//test for Pie Rule, if the num possible seeds > 2 from player 1
+	//(meaning board is smaller than max number of seeds in a pot
+	@Test
+	public void bestMove3(){
+		int [][] boardArray = {{1,1,1,0},{1,1,0,0}};
+		Board board = new Board(boardArray, 3, 0,4);
+		AI ai = new AI(2, true);
+		double eval = ai.eval(board, false);
+		//assertTrue(ai.getBestMove() == pi)
+	}
+
+	
+	
+}

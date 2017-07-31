@@ -1,0 +1,139 @@
+import java.util.ArrayList;
+
+
+public class AI {
+    
+    private int maxDepth;
+    private int bestMove = 0;
+    private int numNodes = 0;
+    boolean player;
+    int timer;
+    boolean usingTimer = false;
+//    int alpha=(int) Double.NEGATIVE_INFINITY;
+//    int beta=(int) Double.POSITIVE_INFINITY;
+    
+    /** Initializes an AI with a maxDepth
+     *
+     * @param _maxDepth The number of levels that the minimax function will go through.
+     */
+    public AI(int _maxDepth, boolean _player){
+        maxDepth = _maxDepth;
+        player = _player;
+    }
+    
+    public AI(boolean _player, int _timer){
+    	timer = _timer;
+    	player = _player;
+    	usingTimer = true;
+    }
+    
+    
+    int calculateMaxDepth(Board b){
+    	int currentTime = 0;
+    	while(timer/5 > currentTime){
+    		long startTime = System.nanoTime();
+    		eval(b, player);
+    		long endTime = System.nanoTime();
+    	}
+    	return 0;
+    }
+    
+    /**Evaluates a board "node" for player one or two
+     * Returns the best utility for the board.
+     * @param node
+     * @param playerOneOrTwo
+     * @return
+     */
+    public double eval(Board node, boolean playerOneOrTwo, int _maxDepth){
+        numNodes = 0;
+        node.parent = null;
+        node.previous = -1;
+        //return miniMax(node,maxDepth, playerOneOrTwo);
+        return miniMax(node,maxDepth, playerOneOrTwo, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+    }
+    
+    
+    /**Creates the minimax tree and then explores it
+     * Recursively creates children and explore them with DFS until it reaches
+     * a terminal node or the depth is too far.
+     * @param board The board to explore
+     * @param depthToGo How many more levels it needs to explore
+     * @param playerOneOrTwo Determines if that level is a min or max level
+     * @return best utility function from each branch
+     */
+    public double miniMax(Board board, int depthToGo, boolean playerOneOrTwo){
+    	
+		int local = -1;
+		double maxOrMin = playerOneOrTwo ? Double.NEGATIVE_INFINITY: Double.POSITIVE_INFINITY;
+		numNodes++;
+		
+		if(board.checkEndState() || depthToGo == 0){
+			if(player)
+				return board.utility(player);
+		}
+		//create children 
+		int stop;
+		if(depthToGo == 1)
+			stop = 0;
+		ArrayList<Board> children = board.getChildren(playerOneOrTwo);
+		//explore
+		for(Board child : children){
+			double nextUtility = miniMax(child, depthToGo-1, !playerOneOrTwo);
+			if(playerOneOrTwo == (nextUtility > maxOrMin)){
+				maxOrMin = nextUtility;
+				local = child.previous;
+				
+			}
+		}
+		bestMove = local;
+		return maxOrMin;
+	}
+    
+    
+    public double miniMax(Board board, int depthToGo, boolean playerOneOrTwo, double alpha, double beta){
+		int local = -1;
+		double maxOrMin = playerOneOrTwo ? Double.NEGATIVE_INFINITY: Double.POSITIVE_INFINITY;
+		numNodes++;
+		if(board.checkEndState() || depthToGo == 0)
+			return board.utility(player);
+		//create children 
+		ArrayList<Board> children = board.getChildren(playerOneOrTwo);
+		//explore
+		for(Board child : children){
+			double nextUtility = miniMax(child, depthToGo-1, !playerOneOrTwo, alpha, beta);
+			if(playerOneOrTwo == (nextUtility > maxOrMin)){
+				maxOrMin = nextUtility;
+				local = child.previous;
+			}
+			if(playerOneOrTwo){
+				alpha = Double.max(alpha, maxOrMin);
+			}
+			else{
+				beta = Double.min(beta, maxOrMin);
+			}
+			if(beta <= alpha)
+				break;
+		}
+		bestMove = local;
+		return maxOrMin;
+	}
+    
+    /** Getter method for number of nodes in minimax tree.
+     * Used mainly for debuging purposes
+     * @return the size of the tree.
+     */
+    public int getNumNodes(){
+        return numNodes;
+    }
+    
+    /** Getter method for the best move.
+     * Used in conjunction with the eval function to get the best move.
+     * @return the best move with certain depth.
+     */
+    public int getBestMove(){
+        return bestMove;
+    }
+				
+}
+
+

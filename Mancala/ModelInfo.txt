@@ -1,0 +1,93 @@
+Server / Client Model
+-> use an unused port for the server (so probably not 9090)
+
+GRAMMAR:
+	Command = info | move | ack
+			info = INFO game_config
+				game_config = <int holes per side><int seeds per side><long int time for timer><F|S><S|R hole_config>
+					hole_config = <int seeds hole 1>....<int seeds hole h>
+					NOTE:: S = standard starting configuration (equal 			number of seeds per hole)
+					NOTE:: R = random number of seeds per hole
+					NOTE:: hole numbers start at left side of players 
+						perspective
+					NOTE:: time limit of 0 = no time limit
+			ack = WELCOME | READY | OK | ILLEGAL | TIME | LOSER | WINNER | 
+				TIE
+			move = hole(hole)* | P
+				NOTE:: P is only allowed on player 2's first move of the 
+					game (Pie Rule)
+
+
+	SERVER REPORTS:
+		OK - Move is verified ( not illegal ), timer starts
+		TIME - if the client took too long to make a move (instead of OK), 		ends game
+		ILLEGAL - if the client made an illegal move (instead of OK), ends 		game
+		TIME - if the server took too long, send TIME after OK before 			sending the MOVE
+		ILLEGAL - if server sent illegal move, send move followed by 
+			ILLEGAl followed by WINNER
+		WELCOME - to acknowledge a joined client
+		LOSER - to notify the losing cliet
+		WINNER - to notify the winning client
+		TIE - if game ends in a draw
+		BEGIN - to the clients saying they can start sending moves
+		NOTE:: server sends the final move even if it is illegal or results in a win/loss/tie before sending the game result
+
+
+	CLIENT REPORTS:
+		READY - when the client is ready to start playing
+		OK - acknowledging a move by the server (do not delay this), timer 		starts?
+
+
+
+
+
+CHOICES ON SETUP (TALK IN MEETING)
+	Program acts as:
+		Server:
+			-Program will determine setup for game
+			-Player 1 = client
+			-Player 2 = second client | runs own AI | Human
+			-Acccepted moves from the client and return info to the client
+
+		Client:
+			-Program will need to connect to server by reading in host name 	& port to connect to, get game configuration, pass to the 		server, get back a responding move from the server
+				- Moves generated from the user or AI
+			-Can create separate clients, one for user input, and separate 		one for AI
+			-Client must return a move within a given amount of time
+				-otherwise server will send TIME and end game (other player wins)
+
+GAME SEQUENCE:
+	-WELCOME: client connects to server(from server)
+	-INFO: gives game configuration (from server)
+	-READY: client acknowledges game configuration (from client)
+	-BEGIN: to clients to say game play starts (from server) 
+	-MOVES: moves are sent back and forth (from clients)
+		-OK: acknowledges move(from server)
+		- can trigger ILLEGAL or TIME (from server)
+	-if game over, TIE, WINNER, LOSER: messages for end game (from server)
+
+<Check given document for pictured examples>
+
+
+
+
+PLAN FOR CLIENT/SERVER MODEL(TALK IN MEETING):
+-AI can either live in server or act as a separate client
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
